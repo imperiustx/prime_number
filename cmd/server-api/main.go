@@ -27,6 +27,11 @@ func main() {
 func run() error {
 
 	// =========================================================================
+	// Logging
+
+	log := log.New(os.Stdout, "SERVER : ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
+
+	// =========================================================================
 	// Configuration
 
 	var cfg struct {
@@ -45,9 +50,9 @@ func run() error {
 		}
 	}
 
-	if err := conf.Parse(os.Args[1:], "SALES", &cfg); err != nil {
+	if err := conf.Parse(os.Args[1:], "SERVER", &cfg); err != nil {
 		if err == conf.ErrHelpWanted {
-			usage, err := conf.Usage("SALES", &cfg)
+			usage, err := conf.Usage("SERVER", &cfg)
 			if err != nil {
 				return errors.Wrap(err, "generating config usage")
 			}
@@ -84,7 +89,7 @@ func run() error {
 	}
 	defer db.Close()
 
-	usersHandler := handlers.Users{DB: db}
+	usersHandler := handlers.Users{DB: db, Log: log}
 
 	// =========================================================================
 	// Start API Service
