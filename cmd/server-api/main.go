@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,11 +11,51 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/ardanlabs/conf"
 	"github.com/imperiustx/prime_number/cmd/server-api/internal/handlers"
 	"github.com/imperiustx/prime_number/internal/platform/database"
+	"github.com/pkg/errors"
 )
 
 func main() {
+	if err := run(); err != nil {
+		log.Println("shutting down", "error:", err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
+
+	// =========================================================================
+	// Configuration
+
+	var cfg struct {
+		Web struct {
+			Address         string        `conf:"default:localhost:8000"`
+			ReadTimeout     time.Duration `conf:"default:5s"`
+			WriteTimeout    time.Duration `conf:"default:5s"`
+			ShutdownTimeout time.Duration `conf:"default:5s"`
+		}
+		DB struct {
+			User       string `conf:"default:root"`
+			Password   string `conf:"default:secret,noprint"`
+			Host       string `conf:"default:localhost"`
+			Name       string `conf:"default:prime_number"`
+			DisableTLS bool   `conf:"default:true"`
+		}
+	}
+
+	if err := conf.Parse(os.Args[1:], "SALES", &cfg); err != nil {
+		if err == conf.ErrHelpWanted {
+			usage, err := conf.Usage("SALES", &cfg)
+			if err != nil {
+				return errors.Wrap(err, "generating config usage")
+			}
+			fmt.Println(usage)
+			return nil
+		}
+		return errors.Wrap(err, "parsing config")
+	}
 
 	// =========================================================================
 	// App Starting
@@ -22,12 +63,24 @@ func main() {
 	log.Printf("main : Started")
 	defer log.Println("main : Completed")
 
+	out, err := conf.String(&cfg)
+	if err != nil {
+		return errors.Wrap(err, "generating config for output")
+	}
+	log.Printf("main : Config :\n%v\n", out)
+
 	// =========================================================================
 	// Start Database
 
-	db, err := database.Open()
+	db, err := database.Open(database.Config{
+		User:       cfg.DB.User,
+		Password:   cfg.DB.Password,
+		Host:       cfg.DB.Host,
+		Name:       cfg.DB.Name,
+		DisableTLS: cfg.DB.DisableTLS,
+	})
 	if err != nil {
-		log.Fatalf("error: connecting to db: %s", err)
+		return errors.Wrap(err, "connecting to db")
 	}
 	defer db.Close()
 
@@ -37,10 +90,10 @@ func main() {
 	// Start API Service
 
 	api := http.Server{
-		Addr:         "localhost:8000",
+		Addr:         cfg.Web.Address,
 		Handler:      http.HandlerFunc(usersHandler.List),
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 5 * time.Second,
+		ReadTimeout:  cfg.Web.ReadTimeout,
+		WriteTimeout: cfg.Web.WriteTimeout,
 	}
 
 	// Make a channel to listen for errors coming from the listener. Use a
@@ -64,25 +117,26 @@ func main() {
 	// Blocking main and waiting for shutdown.
 	select {
 	case err := <-serverErrors:
-		log.Fatalf("error: starting server: %s", err)
+		return errors.Wrap(err, "starting server")
 
 	case <-shutdown:
 		log.Println("main : Start shutdown")
 
 		// Give outstanding requests a deadline for completion.
-		const timeout = 5 * time.Second
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		ctx, cancel := context.WithTimeout(context.Background(), cfg.Web.ShutdownTimeout)
 		defer cancel()
 
 		// Asking listener to shutdown and load shed.
 		err := api.Shutdown(ctx)
 		if err != nil {
-			log.Printf("main : Graceful shutdown did not complete in %v : %v", timeout, err)
+			log.Printf("main : Graceful shutdown did not complete in %v : %v", cfg.Web.ShutdownTimeout, err)
 			err = api.Close()
 		}
 
 		if err != nil {
-			log.Fatalf("main : could not stop server gracefully : %v", err)
+			return errors.Wrap(err, "could not stop server gracefully")
 		}
 	}
+
+	return nil
 }
