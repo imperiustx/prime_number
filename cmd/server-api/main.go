@@ -1,3 +1,4 @@
+// The server-api program is a service for managing all APIs at prime_number server.
 package main
 
 import (

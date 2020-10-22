@@ -2,7 +2,7 @@
 
 ### Schema
 
-<img src="./db/Prime number .png">
+<img src="./Prime number .png">
 
 
 ### TODO List
@@ -13,7 +13,7 @@
 - [x] Set up DB run on a Docker container
 - [x] Make DB migrations
 - [x] Create a Makefile to shorten the commands
-- [ ] Create a simple server
+- [x] Create a simple server
 - [ ] Handle user CRUD, intergrate find the nearest prime number function, write tests
 - [ ] Create a Dockerfile, and docker-compose 
 - [ ] Create frontend by using TypeScript 

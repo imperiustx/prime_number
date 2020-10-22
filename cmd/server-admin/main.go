@@ -1,3 +1,4 @@
+// The server-admin program is a CLI tool for administering the Prime Number project.
 // This program performs administrative tasks for the garage sale service.
 
 package main
