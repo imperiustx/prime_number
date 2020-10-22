@@ -1,10 +1,11 @@
 CREATE TABLE "users" (
   "id" bigserial PRIMARY KEY,
-  "full_name" varchar NOT NULL,
+  "name" varchar NOT NULL,
   "email" varchar UNIQUE NOT NULL,
   "roles" varchar[] NOT NULL,
-  "password_hash" bytea NOT NULL,
-  "created_at" timestamptz NOT NULL DEFAULT (now())
+  "password_hash" varchar NOT NULL,
+  "date_created" timestamptz NOT NULL DEFAULT (now()),
+  "date_updated" timestamptz
 );
 
 CREATE TABLE "requests" (
