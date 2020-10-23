@@ -10,4 +10,10 @@ createdb:
 dropdb:
 	docker exec -it postgres12 dropdb prime_number
 
-.PHONY: db psql createdb dropdb
+run:
+	go run ./cmd/server-api
+
+lint:
+	golangci-lint run
+
+.PHONY: db psql createdb dropdb run

@@ -18,10 +18,10 @@ type User struct {
 }
 
 // NewUser contains information needed to create a new User.
-// type NewUser struct {
-// 	Name            string   `json:"name" validate:"required"`
-// 	Email           string   `json:"email" validate:"required"`
-// 	Roles           []string `json:"roles" validate:"required"`
-// 	Password        string   `json:"password" validate:"required"`
-// 	PasswordConfirm string   `json:"password_confirm" validate:"eqfield=Password"`
-// }
+type NewUser struct {
+	Name            string   `json:"name" validate:"required"`
+	Email           string   `json:"email" validate:"required"`
+	Roles           []string `json:"roles" validate:"required"`
+	Password        string   `json:"password" validate:"required"`
+	PasswordConfirm string   `json:"password_confirm" validate:"eqfield=Password"`
+}
