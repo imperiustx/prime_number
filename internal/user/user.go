@@ -1,12 +1,22 @@
 package user
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
+)
+
+// Predefined errors identify expected failure conditions.
+var (
+	// ErrNotFound is used when a specific Product is requested but does not exist.
+	ErrNotFound = errors.New("user not found")
+
+	// ErrInvalidID is used when an invalid UUID is provided.
+	ErrInvalidID = errors.New("ID is not in its proper form")
 )
 
 // List gets all Users from the database.
@@ -24,11 +34,18 @@ func List(db *sqlx.DB) ([]User, error) {
 
 // Retrieve finds the user identified by a given ID.
 func Retrieve(db *sqlx.DB, id string) (*User, error) {
+	if _, err := uuid.Parse(id); err != nil {
+		return nil, ErrInvalidID
+	}
+
 	var u User
 
 	const q = `SELECT * FROM users WHERE user_id = $1`
 
 	if err := db.Get(&u, q, id); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNotFound
+		}
 		return nil, errors.Wrap(err, "selecting single user")
 	}
 
@@ -62,7 +79,7 @@ func Create(db *sqlx.DB, nu NewUser, now time.Time) (*User, error) {
 		u.ID, u.Name,
 		u.Email, u.Roles, u.PasswordHash,
 		u.DateCreated, u.DateUpdated); err != nil {
-		return nil, errors.Wrap(err, "inserting product")
+		return nil, errors.Wrap(err, "inserting user")
 	}
 
 	return &u, nil

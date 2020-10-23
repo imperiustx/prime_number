@@ -16,4 +16,4 @@ run:
 lint:
 	golangci-lint run
 
-.PHONY: db psql createdb dropdb run
+.PHONY: db psql createdb dropdb run lint
