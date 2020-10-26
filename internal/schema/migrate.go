@@ -23,8 +23,22 @@ CREATE TABLE "users" (
 	"email" varchar UNIQUE NOT NULL,
 	"roles" varchar[] NOT NULL,
 	"password_hash" bytea NOT NULL,
-	"date_created" timestamptz NOT NULL,
-	"date_updated" timestamptz NOT NULL
+	"date_created" timestamp NOT NULL,
+	"date_updated" timestamp NOT NULL
+);`,
+	},
+	{
+		Version:     2,
+		Description: "Add requests",
+		Script: `
+CREATE TABLE prime_number_requests (
+	request_id UUID PRIMARY KEY,
+	user_id UUID,
+	send_number BIGINT,
+	receive_number BIGINT,
+	date_created TIMESTAMP,
+
+	FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );`,
 	},
 }

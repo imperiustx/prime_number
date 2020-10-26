@@ -6,16 +6,25 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/imperiustx/prime_number/internal/platform/database/databasetest"
+	"github.com/imperiustx/prime_number/internal/platform/database"
 	"github.com/imperiustx/prime_number/internal/schema"
 	"github.com/imperiustx/prime_number/internal/user"
+	_ "github.com/lib/pq" // The database driver in use.
 )
 
 func TestUsers(t *testing.T) {
 
-	_, db, teardown := databasetest.NewUnit(t)
-
-	defer teardown()
+	db, err := database.Open(database.Config{
+		User:       "root",
+		Password:   "secret",
+		Host:       "localhost",
+		Name:       "prime_number",
+		DisableTLS: true,
+	})
+	if err != nil {
+		t.Fatalf("connecting to db: %s", err)
+	}
+	defer db.Close()
 
 	newU := user.NewUser{
 		Name:            "Thor",
@@ -43,9 +52,9 @@ func TestUsers(t *testing.T) {
 	}
 
 	update := user.UpdateUser{
-		Name: databasetest.StringPointer("Thor Odinson"),
+		Name: StringPointer("Thor Odinson"),
 	}
-	updatedTime := time.Now()
+	updatedTime := time.Now().UTC()
 
 	if err := user.Update(ctx, db, u0.ID, update, updatedTime); err != nil {
 		t.Fatalf("updating user u0: %s", err)
@@ -78,8 +87,17 @@ func TestUsers(t *testing.T) {
 }
 
 func TestUserList(t *testing.T) {
-	_, db, teardown := databasetest.NewUnit(t)
-	defer teardown()
+	db, err := database.Open(database.Config{
+		User:       "root",
+		Password:   "secret",
+		Host:       "localhost",
+		Name:       "prime_number",
+		DisableTLS: true,
+	})
+	if err != nil {
+		t.Fatalf("connecting to db: %s", err)
+	}
+	defer db.Close()
 
 	if err := schema.Seed(db); err != nil {
 		t.Fatal(err)
@@ -92,4 +110,11 @@ func TestUserList(t *testing.T) {
 	if exp, got := 2, len(ps); exp != got {
 		t.Fatalf("expected user list size %v, got %v", exp, got)
 	}
+}
+
+// StringPointer is a helper to get a *string from a string. It is in the tests
+// package because we normally don't want to deal with pointers to basic types
+// but it's useful in some tests.
+func StringPointer(s string) *string {
+	return &s
 }

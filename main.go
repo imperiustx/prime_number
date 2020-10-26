@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	fmt.Println("highest prime number: ", highestPrimeNumber(1354534))
+	fmt.Println("highest prime number: ", highestPrimeNumber(100))
 
 }
 
