@@ -13,7 +13,7 @@ import (
 
 // Predefined errors identify expected failure conditions.
 var (
-	// ErrNotFound is used when a specific Product is requested but does not exist.
+	// ErrNotFound is used when a specific User is requested but does not exist.
 	ErrNotFound = errors.New("user not found")
 
 	// ErrInvalidID is used when an invalid UUID is provided.

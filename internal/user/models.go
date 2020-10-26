@@ -33,5 +33,5 @@ type NewUser struct {
 // explicitly blank. Normally we do not want to use pointers to basic types but
 // we make exceptions around marshalling/unmarshalling.
 type UpdateUser struct {
-	Name     *string `json:"name"`
+	Name *string `json:"name"`
 }
