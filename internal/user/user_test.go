@@ -1,6 +1,7 @@
 package user_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -25,13 +26,14 @@ func TestUsers(t *testing.T) {
 	}
 
 	now := time.Now()
+	ctx := context.Background()
 
-	u0, err := user.Create(db, newU, now)
+	u0, err := user.Create(ctx, db, newU, now)
 	if err != nil {
 		t.Fatalf("creating user u0: %s", err)
 	}
 
-	u1, err := user.Retrieve(db, u0.ID)
+	u1, err := user.Retrieve(ctx, db, u0.ID)
 	if err != nil {
 		t.Fatalf("getting user u0: %s", err)
 	}
@@ -50,7 +52,7 @@ func TestUserList(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ps, err := user.List(db)
+	ps, err := user.List(context.Background(), db)
 	if err != nil {
 		t.Fatalf("listing users: %s", err)
 	}
