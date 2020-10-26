@@ -16,4 +16,10 @@ run:
 lint:
 	golangci-lint run
 
-.PHONY: db psql createdb dropdb run lint
+migrate:
+	go run ./cmd/server-admin/ migrate
+
+seed:
+	go run ./cmd/server-admin/ seed
+
+.PHONY: db psql createdb dropdb run lint migrate seed

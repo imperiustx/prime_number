@@ -18,6 +18,8 @@ func API(db *sqlx.DB, log *log.Logger) http.Handler {
 	app.Handle(http.MethodGet, "/v1/users", u.List)
 	app.Handle(http.MethodGet, "/v1/users/{id}", u.Retrieve)
 	app.Handle(http.MethodPost, "/v1/users", u.Create)
+	app.Handle(http.MethodPut, "/v1/users/{id}", u.Update)
+	app.Handle(http.MethodDelete, "/v1/users/{id}", u.Delete)
 
 	return app
 }

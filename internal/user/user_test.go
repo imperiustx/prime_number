@@ -6,16 +6,25 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/imperiustx/prime_number/internal/platform/database/databasetest"
+	"github.com/imperiustx/prime_number/internal/platform/database"
 	"github.com/imperiustx/prime_number/internal/schema"
 	"github.com/imperiustx/prime_number/internal/user"
+	_ "github.com/lib/pq" // The database driver in use.
 )
 
 func TestUsers(t *testing.T) {
 
-	_, db, teardown := databasetest.NewUnit(t)
-
-	defer teardown()
+	db, err := database.Open(database.Config{
+		User:       "root",
+		Password:   "secret",
+		Host:       "localhost",
+		Name:       "prime_number",
+		DisableTLS: true,
+	})
+	if err != nil {
+		t.Fatalf("connecting to db: %s", err)
+	}
+	defer db.Close()
 
 	newU := user.NewUser{
 		Name:            "Thor",
@@ -42,11 +51,53 @@ func TestUsers(t *testing.T) {
 		t.Fatalf("fetched != created:\n%s", diff)
 	}
 
+	update := user.UpdateUser{
+		Name: StringPointer("Thor Odinson"),
+	}
+	updatedTime := time.Now().UTC()
+
+	if err := user.Update(ctx, db, u0.ID, update, updatedTime); err != nil {
+		t.Fatalf("updating user u0: %s", err)
+	}
+
+	saved, err := user.Retrieve(ctx, db, u0.ID)
+	if err != nil {
+		t.Fatalf("getting user u0: %s", err)
+	}
+
+	// Check specified fields were updated. Make a copy of the original user
+	// and change just the fields we expect then diff it with what was saved.
+	want := *u0
+	want.Name = "Thor Odinson"
+	want.DateUpdated = updatedTime
+
+	if diff := cmp.Diff(want, *saved); diff != "" {
+		t.Fatalf("updated record did not match:\n%s", diff)
+	}
+
+	if err := user.Delete(ctx, db, u0.ID); err != nil {
+		t.Fatalf("deleting product: %v", err)
+	}
+
+	_, err = user.Retrieve(ctx, db, u0.ID)
+	if err == nil {
+		t.Fatalf("should not be able to retrieve deleted user")
+	}
+
 }
 
 func TestUserList(t *testing.T) {
-	_, db, teardown := databasetest.NewUnit(t)
-	defer teardown()
+	db, err := database.Open(database.Config{
+		User:       "root",
+		Password:   "secret",
+		Host:       "localhost",
+		Name:       "prime_number",
+		DisableTLS: true,
+	})
+	if err != nil {
+		t.Fatalf("connecting to db: %s", err)
+	}
+	defer db.Close()
 
 	if err := schema.Seed(db); err != nil {
 		t.Fatal(err)
@@ -59,4 +110,11 @@ func TestUserList(t *testing.T) {
 	if exp, got := 2, len(ps); exp != got {
 		t.Fatalf("expected user list size %v, got %v", exp, got)
 	}
+}
+
+// StringPointer is a helper to get a *string from a string. It is in the tests
+// package because we normally don't want to deal with pointers to basic types
+// but it's useful in some tests.
+func StringPointer(s string) *string {
+	return &s
 }

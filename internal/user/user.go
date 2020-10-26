@@ -85,3 +85,46 @@ func Create(ctx context.Context, db *sqlx.DB, nu NewUser, now time.Time) (*User,
 
 	return &u, nil
 }
+
+// Update modifies data about an User. It will error if the specified ID is
+// invalid or does not reference an existing User.
+func Update(ctx context.Context, db *sqlx.DB, id string, update UpdateUser, now time.Time) error {
+	u, err := Retrieve(ctx, db, id)
+	if err != nil {
+		return err
+	}
+
+	if update.Name != nil {
+		u.Name = *update.Name
+	}
+
+	u.DateUpdated = now
+
+	const q = `UPDATE users SET
+		"name" = $2,
+		"date_updated" = $3
+		WHERE user_id = $1`
+	_, err = db.ExecContext(ctx, q, id,
+		u.Name, u.DateUpdated,
+	)
+	if err != nil {
+		return errors.Wrap(err, "updating user")
+	}
+
+	return nil
+}
+
+// Delete removes the user identified by a given ID.
+func Delete(ctx context.Context, db *sqlx.DB, id string) error {
+	if _, err := uuid.Parse(id); err != nil {
+		return ErrInvalidID
+	}
+
+	const q = `DELETE FROM users WHERE user_id = $1`
+
+	if _, err := db.ExecContext(ctx, q, id); err != nil {
+		return errors.Wrapf(err, "deleting user %s", id)
+	}
+
+	return nil
+}
