@@ -42,6 +42,39 @@ func TestUsers(t *testing.T) {
 		t.Fatalf("fetched != created:\n%s", diff)
 	}
 
+	update := user.UpdateUser{
+		Name: databasetest.StringPointer("Thor Odinson"),
+	}
+	updatedTime := time.Now()
+
+	if err := user.Update(ctx, db, u0.ID, update, updatedTime); err != nil {
+		t.Fatalf("updating user u0: %s", err)
+	}
+
+	saved, err := user.Retrieve(ctx, db, u0.ID)
+	if err != nil {
+		t.Fatalf("getting user u0: %s", err)
+	}
+
+	// Check specified fields were updated. Make a copy of the original user
+	// and change just the fields we expect then diff it with what was saved.
+	want := *u0
+	want.Name = "Thor Odinson"
+	want.DateUpdated = updatedTime
+
+	if diff := cmp.Diff(want, *saved); diff != "" {
+		t.Fatalf("updated record did not match:\n%s", diff)
+	}
+
+	if err := user.Delete(ctx, db, u0.ID); err != nil {
+		t.Fatalf("deleting product: %v", err)
+	}
+
+	_, err = user.Retrieve(ctx, db, u0.ID)
+	if err == nil {
+		t.Fatalf("should not be able to retrieve deleted user")
+	}
+
 }
 
 func TestUserList(t *testing.T) {

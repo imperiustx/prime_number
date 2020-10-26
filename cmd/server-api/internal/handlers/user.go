@@ -66,3 +66,43 @@ func (u *Users) Create(w http.ResponseWriter, r *http.Request) error {
 
 	return web.Respond(w, &usr, http.StatusCreated)
 }
+
+// Update decodes the body of a request to update an existing user. The ID
+// of the user is part of the request URL.
+func (u *Users) Update(w http.ResponseWriter, r *http.Request) error {
+	id := chi.URLParam(r, "id")
+
+	var update user.UpdateUser
+	if err := web.Decode(r, &update); err != nil {
+		return errors.Wrap(err, "decoding product update")
+	}
+
+	if err := user.Update(r.Context(), u.DB, id, update, time.Now()); err != nil {
+		switch err {
+		case user.ErrNotFound:
+			return web.NewRequestError(err, http.StatusNotFound)
+		case user.ErrInvalidID:
+			return web.NewRequestError(err, http.StatusBadRequest)
+		default:
+			return errors.Wrapf(err, "updating user %q", id)
+		}
+	}
+
+	return web.Respond(w, nil, http.StatusNoContent)
+}
+
+// Delete removes a single user identified by an ID in the request URL.
+func (u *Users) Delete(w http.ResponseWriter, r *http.Request) error {
+	id := chi.URLParam(r, "id")
+
+	if err := user.Delete(r.Context(), u.DB, id); err != nil {
+		switch err {
+		case user.ErrInvalidID:
+			return web.NewRequestError(err, http.StatusBadRequest)
+		default:
+			return errors.Wrapf(err, "deleting user %q", id)
+		}
+	}
+
+	return web.Respond(w, nil, http.StatusNoContent)
+}
