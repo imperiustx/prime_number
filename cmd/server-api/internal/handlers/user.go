@@ -23,7 +23,7 @@ type Users struct {
 // List gets all users from the service layer and encodes them for the
 // client response.
 func (u *Users) List(w http.ResponseWriter, r *http.Request) error {
-	list, err := user.List(u.DB)
+	list, err := user.List(r.Context(), u.DB)
 	if err != nil {
 		return errors.Wrap(err, "getting user list")
 	}
@@ -35,7 +35,7 @@ func (u *Users) List(w http.ResponseWriter, r *http.Request) error {
 func (u *Users) Retrieve(w http.ResponseWriter, r *http.Request) error {
 	id := chi.URLParam(r, "id")
 
-	usr, err := user.Retrieve(u.DB, id)
+	usr, err := user.Retrieve(r.Context(), u.DB, id)
 	if err != nil {
 		switch err {
 		case user.ErrNotFound:
@@ -59,7 +59,7 @@ func (u *Users) Create(w http.ResponseWriter, r *http.Request) error {
 		return errors.Wrap(err, "decoding new user")
 	}
 
-	usr, err := user.Create(u.DB, nu, time.Now())
+	usr, err := user.Create(r.Context(), u.DB, nu, time.Now())
 	if err != nil {
 		return errors.Wrap(err, "creating new user")
 	}
