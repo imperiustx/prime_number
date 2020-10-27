@@ -28,7 +28,7 @@ func (u *Users) List(w http.ResponseWriter, r *http.Request) error {
 		return errors.Wrap(err, "getting user list")
 	}
 
-	return web.Respond(w, list, http.StatusOK)
+	return web.Respond(r.Context(), w, list, http.StatusOK)
 }
 
 // Retrieve finds a single user identified by an ID in the request URL.
@@ -47,7 +47,7 @@ func (u *Users) Retrieve(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
-	return web.Respond(w, usr, http.StatusOK)
+	return web.Respond(r.Context(), w, usr, http.StatusOK)
 }
 
 // Create decodes the body of a request to create a new user. The full
@@ -64,7 +64,7 @@ func (u *Users) Create(w http.ResponseWriter, r *http.Request) error {
 		return errors.Wrap(err, "creating new user")
 	}
 
-	return web.Respond(w, &usr, http.StatusCreated)
+	return web.Respond(r.Context(), w, &usr, http.StatusCreated)
 }
 
 // Update decodes the body of a request to update an existing user. The ID
@@ -88,7 +88,7 @@ func (u *Users) Update(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
-	return web.Respond(w, nil, http.StatusNoContent)
+	return web.Respond(r.Context(), w, nil, http.StatusNoContent)
 }
 
 // Delete removes a single user identified by an ID in the request URL.
@@ -104,5 +104,5 @@ func (u *Users) Delete(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
-	return web.Respond(w, nil, http.StatusNoContent)
+	return web.Respond(r.Context(), w, nil, http.StatusNoContent)
 }
