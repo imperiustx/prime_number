@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi"
+	"github.com/imperiustx/prime_number/internal/platform/auth"
 	"github.com/imperiustx/prime_number/internal/platform/web"
 	"github.com/imperiustx/prime_number/internal/primenumberrequest"
 	"github.com/jmoiron/sqlx"
@@ -21,20 +23,20 @@ type PrimeNumberRequests struct {
 
 // List gets all requests from the service layer and encodes them for the
 // client response.
-func (p *PrimeNumberRequests) List(w http.ResponseWriter, r *http.Request) error {
-	list, err := primenumberrequest.List(r.Context(), p.DB)
+func (p *PrimeNumberRequests) List(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	list, err := primenumberrequest.List(ctx, p.DB)
 	if err != nil {
 		return errors.Wrap(err, "getting requests list")
 	}
 
-	return web.Respond(r.Context(), w, list, http.StatusOK)
+	return web.Respond(ctx, w, list, http.StatusOK)
 }
 
 // Retrieve finds a single user identified by an ID in the request URL.
-func (p *PrimeNumberRequests) Retrieve(w http.ResponseWriter, r *http.Request) error {
+func (p *PrimeNumberRequests) Retrieve(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	id := chi.URLParam(r, "id")
 
-	req, err := primenumberrequest.Retrieve(r.Context(), p.DB, id)
+	req, err := primenumberrequest.Retrieve(ctx, p.DB, id)
 	if err != nil {
 		switch err {
 		case primenumberrequest.ErrNotFound:
@@ -46,34 +48,39 @@ func (p *PrimeNumberRequests) Retrieve(w http.ResponseWriter, r *http.Request) e
 		}
 	}
 
-	return web.Respond(r.Context(), w, req, http.StatusOK)
+	return web.Respond(ctx, w, req, http.StatusOK)
 }
 
 // Create decodes the body of a request to create a new request. The full
 // request with generated fields is sent back in the response.
-func (p *PrimeNumberRequests) Create(w http.ResponseWriter, r *http.Request) error {
+func (p *PrimeNumberRequests) Create(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	claims, ok := ctx.Value(auth.Key).(auth.Claims)
+	if !ok {
+		return errors.New("claims missing from context")
+	}
+
 	var nr primenumberrequest.NewRequest
 
 	if err := web.Decode(r, &nr); err != nil {
 		return errors.Wrap(err, "decoding new request")
 	}
 
-	req, err := primenumberrequest.Create(r.Context(), p.DB, nr, time.Now())
+	req, err := primenumberrequest.Create(ctx, p.DB, claims, nr, time.Now())
 	if err != nil {
 		return errors.Wrap(err, "creating new requst")
 	}
 
-	return web.Respond(r.Context(), w, &req, http.StatusCreated)
+	return web.Respond(ctx, w, &req, http.StatusCreated)
 }
 
 // ListRequests gets all requests by an user from the service layer and encodes them for the
 // client response.
-func (p *PrimeNumberRequests) ListRequests(w http.ResponseWriter, r *http.Request) error {
+func (p *PrimeNumberRequests) ListRequests(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	id := chi.URLParam(r, "uid")
-	list, err := primenumberrequest.ListRequests(r.Context(), p.DB, id)
+	list, err := primenumberrequest.ListRequests(ctx, p.DB, id)
 	if err != nil {
 		return errors.Wrap(err, "getting requests list")
 	}
 
-	return web.Respond(r.Context(), w, list, http.StatusOK)
+	return web.Respond(ctx, w, list, http.StatusOK)
 }

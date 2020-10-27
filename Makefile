@@ -25,4 +25,7 @@ seed:
 expvarmon:
 	expvarmon -ports="6060" -endpoint="/debug/vars" -vars="requests,goroutines,errors,mem:memstats.Alloc"
 
-.PHONY: db psql createdb dropdb run lint migrate seed expvarmon
+private:
+	go run ./cmd/server-admin keygen private.pem
+
+.PHONY: db psql createdb dropdb run lint migrate seed expvarmon private

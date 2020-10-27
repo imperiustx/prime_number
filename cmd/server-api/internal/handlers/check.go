@@ -1,10 +1,11 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 
-	"github.com/imperiustx/prime_number/internal/platform/web"
 	"github.com/imperiustx/prime_number/internal/platform/database"
+	"github.com/imperiustx/prime_number/internal/platform/web"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -16,22 +17,22 @@ type Check struct {
 }
 
 // Health validates the service is healthy and ready to accept requests.
-func (c *Check) Health(w http.ResponseWriter, r *http.Request) error {
+func (c *Check) Health(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 
 	var health struct {
 		Status string `json:"status"`
 	}
 
 	// Check if the database is ready.
-	if err := database.StatusCheck(r.Context(), c.db); err != nil {
+	if err := database.StatusCheck(ctx, c.db); err != nil {
 
 		// If the database is not ready we will tell the client and use a 500
 		// status. Do not respond by just returning an error because further up in
 		// the call stack will interpret that as an unhandled error.
 		health.Status = "db not ready"
-		return web.Respond(r.Context(), w, health, http.StatusInternalServerError)
+		return web.Respond(ctx, w, health, http.StatusInternalServerError)
 	}
 
 	health.Status = "ok"
-	return web.Respond(r.Context(), w, health, http.StatusOK)
+	return web.Respond(ctx, w, health, http.StatusOK)
 }

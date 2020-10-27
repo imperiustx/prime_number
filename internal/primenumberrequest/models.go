@@ -13,6 +13,5 @@ type PrimeNumberRequest struct {
 
 // NewRequest is what we require from clients when they send a new request
 type NewRequest struct {
-	UserID     string `json:"user_id" validate:"uuid"`
 	SendNumber int64  `json:"send_number" validate:"gte=3"`
 }
