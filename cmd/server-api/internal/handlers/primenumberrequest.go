@@ -27,7 +27,7 @@ func (p *PrimeNumberRequests) List(w http.ResponseWriter, r *http.Request) error
 		return errors.Wrap(err, "getting requests list")
 	}
 
-	return web.Respond(w, list, http.StatusOK)
+	return web.Respond(r.Context(), w, list, http.StatusOK)
 }
 
 // Retrieve finds a single user identified by an ID in the request URL.
@@ -46,7 +46,7 @@ func (p *PrimeNumberRequests) Retrieve(w http.ResponseWriter, r *http.Request) e
 		}
 	}
 
-	return web.Respond(w, req, http.StatusOK)
+	return web.Respond(r.Context(), w, req, http.StatusOK)
 }
 
 // Create decodes the body of a request to create a new request. The full
@@ -63,7 +63,7 @@ func (p *PrimeNumberRequests) Create(w http.ResponseWriter, r *http.Request) err
 		return errors.Wrap(err, "creating new requst")
 	}
 
-	return web.Respond(w, &req, http.StatusCreated)
+	return web.Respond(r.Context(), w, &req, http.StatusCreated)
 }
 
 // ListRequests gets all requests by an user from the service layer and encodes them for the
@@ -75,5 +75,5 @@ func (p *PrimeNumberRequests) ListRequests(w http.ResponseWriter, r *http.Reques
 		return errors.Wrap(err, "getting requests list")
 	}
 
-	return web.Respond(w, list, http.StatusOK)
+	return web.Respond(r.Context(), w, list, http.StatusOK)
 }

@@ -5,6 +5,10 @@
 <img src="./Prime number .png">
 
 
+### Middlewares diagram
+
+<img src="./middlewares.png">
+
 ### TODO List
 
 - [x] Find a solution to find the nearest prime number
@@ -14,7 +18,8 @@
 - [x] Make DB migrations
 - [x] Create a Makefile to shorten the commands
 - [x] Create a simple server
-- [ ] Handle user CRUD, intergrate find the nearest prime number function, write tests
+- [x] Handle user CRUD, intergrate find the nearest prime number function, write tests
+- [ ] implement health check, profilling, add middleware, metrics, request logging
 - [ ] Create a Dockerfile, and docker-compose 
 - [ ] Create frontend by using TypeScript 
 - [ ] Deploy project on an AWS EC2 manually
