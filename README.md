@@ -19,7 +19,8 @@
 - [x] Create a Makefile to shorten the commands
 - [x] Create a simple server
 - [x] Handle user CRUD, intergrate find the nearest prime number function, write tests
-- [ ] implement health check, profilling, add middleware, metrics, request logging
+- [x] implement health check, profilling, add middleware, metrics, request logging
+- [ ] Implement Authentication and Authorization
 - [ ] Create a Dockerfile, and docker-compose 
 - [ ] Create frontend by using TypeScript 
 - [ ] Deploy project on an AWS EC2 manually

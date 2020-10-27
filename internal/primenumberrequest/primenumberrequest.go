@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/imperiustx/prime_number/internal/user"
+	"github.com/imperiustx/prime_number/internal/platform/auth"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
@@ -56,16 +56,11 @@ func Retrieve(ctx context.Context, db *sqlx.DB, id string) (*PrimeNumberRequest,
 
 // Create adds a Request to the database. It returns the created Request with
 // fields like ID and DateCreated populated..
-func Create(ctx context.Context, db *sqlx.DB, nr NewRequest, now time.Time) (*PrimeNumberRequest, error) {
-	// check userID exists
-	_, err := user.Retrieve(ctx, db, nr.UserID)
-	if err != nil {
-		return nil, err
-	}
+func Create(ctx context.Context, db *sqlx.DB, user auth.Claims, nr NewRequest, now time.Time) (*PrimeNumberRequest, error) {
 
 	p := PrimeNumberRequest{
 		ID:            uuid.New().String(),
-		UserID:        nr.UserID,
+		UserID:        user.Subject,
 		SendNumber:    nr.SendNumber,
 		ReceiveNumber: highestPrimeNumber(nr.SendNumber),
 		DateCreated:   now.UTC(),

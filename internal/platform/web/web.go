@@ -22,7 +22,7 @@ type Values struct {
 }
 
 // Handler is the signature used by all application handlers in this service.
-type Handler func(http.ResponseWriter, *http.Request) error
+type Handler func(context.Context, http.ResponseWriter, *http.Request) error
 
 // App is the entrypoint into our application and what controls the context of
 // each request. Feel free to add any configuration data/logic on this type.
@@ -46,9 +46,12 @@ func NewApp(log *log.Logger, mw ...Middleware) *App {
 //
 // It converts our custom handler type to the std lib Handler type. It captures
 // errors from the handler and serves them to the client in a uniform way.
-func (a *App) Handle(method, url string, h Handler) {
+func (a *App) Handle(method, url string, h Handler, mw ...Middleware) {
 
-	// wrap the application's middleware around this endpoint's handler.
+	// First wrap handler specific middleware around this handler.
+	h = wrapMiddleware(mw, h)
+
+	// Add the application's general middleware to the handler chain.
 	h = wrapMiddleware(a.mw, h)
 
 	// Create a function that conforms to the std lib definition of a handler.
@@ -61,10 +64,9 @@ func (a *App) Handle(method, url string, h Handler) {
 			Start: time.Now(),
 		}
 		ctx := context.WithValue(r.Context(), KeyValues, &v)
-		r = r.WithContext(ctx)
 
 		// Run the handler chain and catch any propagated error.
-		if err := h(w, r); err != nil {
+		if err := h(ctx, w, r); err != nil {
 			a.log.Printf("Unhandled error: %+v", err)
 		}
 	}

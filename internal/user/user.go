@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/imperiustx/prime_number/internal/platform/auth"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
@@ -18,6 +19,14 @@ var (
 
 	// ErrInvalidID is used when an invalid UUID is provided.
 	ErrInvalidID = errors.New("ID is not in its proper form")
+
+	// ErrAuthenticationFailure occurs when a user attempts to authenticate but
+	// anything goes wrong.
+	ErrAuthenticationFailure = errors.New("Authentication failed")
+
+	// ErrForbidden occurs when a user tries to do something that is forbidden to
+	// them according to our access control policies.
+	ErrForbidden = errors.New("Attempted action is not allowed")
 )
 
 // List gets all Users from the database.
@@ -88,10 +97,17 @@ func Create(ctx context.Context, db *sqlx.DB, nu NewUser, now time.Time) (*User,
 
 // Update modifies data about an User. It will error if the specified ID is
 // invalid or does not reference an existing User.
-func Update(ctx context.Context, db *sqlx.DB, id string, update UpdateUser, now time.Time) error {
+func Update(ctx context.Context, db *sqlx.DB, user auth.Claims, id string, update UpdateUser, now time.Time) error {
 	u, err := Retrieve(ctx, db, id)
 	if err != nil {
 		return err
+	}
+
+	// If you do not have the admin role ...
+	// and you are not the owner of this ...
+	// then you are forbidden to process
+	if !user.HasRole(auth.RoleAdmin) && u.ID != user.Subject {
+		return ErrForbidden
 	}
 
 	if update.Name != nil {
@@ -127,4 +143,35 @@ func Delete(ctx context.Context, db *sqlx.DB, id string) error {
 	}
 
 	return nil
+}
+
+// Authenticate finds a user by their email and verifies their password. On
+// success it returns a Claims value representing this user. The claims can be
+// used to generate a token for future authentication.
+func Authenticate(ctx context.Context, db *sqlx.DB, now time.Time, email, password string) (auth.Claims, error) {
+
+	const q = `SELECT * FROM users WHERE email = $1`
+
+	var u User
+	if err := db.GetContext(ctx, &u, q, email); err != nil {
+
+		// Normally we would return ErrNotFound in this scenario but we do not want
+		// to leak to an unauthenticated user which emails are in the system.
+		if err == sql.ErrNoRows {
+			return auth.Claims{}, ErrAuthenticationFailure
+		}
+
+		return auth.Claims{}, errors.Wrap(err, "selecting single user")
+	}
+
+	// Compare the provided password with the saved hash. Use the bcrypt
+	// comparison function so it is cryptographically secure.
+	if err := bcrypt.CompareHashAndPassword(u.PasswordHash, []byte(password)); err != nil {
+		return auth.Claims{}, ErrAuthenticationFailure
+	}
+
+	// If we are this far the request is valid. Create some claims for the user
+	// and generate their token.
+	claims := auth.NewClaims(u.ID, u.Roles, now, time.Hour)
+	return claims, nil
 }
