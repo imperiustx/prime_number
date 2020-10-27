@@ -1,0 +1,248 @@
+{
+	"info": {
+		"_postman_id": "9c0916eb-cba9-4de0-90df-852af0cc5642",
+		"name": "Prime_Number_Service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "{{SERVER}}/v1/health",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{SERVER}}/v1/health",
+					"host": [
+						"{{SERVER}}"
+					],
+					"path": [
+						"v1",
+						"health"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{SERVER}}/v1/users/token",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "gophers",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "admin@example.com",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{SERVER}}/v1/users/token",
+					"host": [
+						"{{SERVER}}"
+					],
+					"path": [
+						"v1",
+						"users",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{SERVER}}/v1/users",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Steven Strange\",\n    \"email\": \"drstrange@marvel.com\",\n    \"roles\": [\"USER\"],\n    \"password\": \"123456\",\n    \"password_confirm\": \"123456\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{SERVER}}/v1/users",
+					"host": [
+						"{{SERVER}}"
+					],
+					"path": [
+						"v1",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{SERVER}}/v1/users/5cf37266-3473-4006-984f-9325122678b7",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{SERVER}}/v1/users/5cf37266-3473-4006-984f-9325122678b7",
+					"host": [
+						"{{SERVER}}"
+					],
+					"path": [
+						"v1",
+						"users",
+						"5cf37266-3473-4006-984f-9325122678b7"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{SERVER}}/v1/users/693d907c-36cc-496c-a166-e11922c8716d",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Peter Jason Quill\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{SERVER}}/v1/users/693d907c-36cc-496c-a166-e11922c8716d",
+					"host": [
+						"{{SERVER}}"
+					],
+					"path": [
+						"v1",
+						"users",
+						"693d907c-36cc-496c-a166-e11922c8716d"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{SERVER}}/v1/users",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjEiLCJ0eXAiOiJKV1QifQ.eyJyb2xlcyI6WyJBRE1JTiIsIlVTRVIiXSwiZXhwIjoxNjAzNzg2MDQ2LCJpYXQiOjE2MDM3ODI0NDYsInN1YiI6IjVjZjM3MjY2LTM0NzMtNDAwNi05ODRmLTkzMjUxMjI2NzhiNyJ9.r5crtAqJiNh2XSosW9fvnOP8b0D9K8x_R7DNmDmAPs2QAgg0zoUpC2QM384QsksuWrUnL3p7NAf5X_Q66vmUJ-G190cwvu0LRsAh57l6HbseZ9D3-l3Ey6Q36vnYwoD4KbU3S6Ym5uT899IpmGoQRpmXnFS8fUj8OZ-nwO-NvHTf-6dxO6Ecq91QoqosyeZOCUBa8l4ibo0jaX4_UqGctGHsWPhIiUfULkssbbBCb86xuIkotNzT-nDcVG8m-jIS5VdIS0nPBT-WsJVRp7OuphQtONNX7qnsS4hCC_WJ-Czp_3c2vtollF5SnPyZ56IpRHZ0ekqvRFq-zy1Inkpv3Q",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{SERVER}}/v1/users",
+					"host": [
+						"{{SERVER}}"
+					],
+					"path": [
+						"v1",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{SERVER}}/v1/users/a8501771-a84a-4ea7-9aa8-b06e44b17df6",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{SERVER}}/v1/users/a8501771-a84a-4ea7-9aa8-b06e44b17df6",
+					"host": [
+						"{{SERVER}}"
+					],
+					"path": [
+						"v1",
+						"users",
+						"a8501771-a84a-4ea7-9aa8-b06e44b17df6"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{SERVER}}/v1/requests",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{SERVER}}/v1/requests",
+					"host": [
+						"{{SERVER}}"
+					],
+					"path": [
+						"v1",
+						"requests"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{SERVER}}/v1/requests/user/5cf37266-3473-4006-984f-9325122678b7",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{SERVER}}/v1/requests/user/5cf37266-3473-4006-984f-9325122678b7",
+					"host": [
+						"{{SERVER}}"
+					],
+					"path": [
+						"v1",
+						"requests",
+						"user",
+						"5cf37266-3473-4006-984f-9325122678b7"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{SERVER}}/v1/requests",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"user_id\": \"5cf37266-3473-4006-984f-9325122678b7\",\n    \"send_number\": 9999\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{SERVER}}/v1/requests",
+					"host": [
+						"{{SERVER}}"
+					],
+					"path": [
+						"v1",
+						"requests"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
