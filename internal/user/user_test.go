@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/imperiustx/prime_number/internal/platform/auth"
 	"github.com/imperiustx/prime_number/internal/platform/database"
 	"github.com/imperiustx/prime_number/internal/schema"
 	"github.com/imperiustx/prime_number/internal/user"
@@ -37,6 +38,12 @@ func TestUsers(t *testing.T) {
 	now := time.Now()
 	ctx := context.Background()
 
+	claims := auth.NewClaims(
+		"718ffbea-f4a1-4667-8ae3-b349da52675e", // This is just some random UUID.
+		[]string{auth.RoleAdmin, auth.RoleUser},
+		now, time.Hour,
+	)
+
 	u0, err := user.Create(ctx, db, newU, now)
 	if err != nil {
 		t.Fatalf("creating user u0: %s", err)
@@ -56,7 +63,7 @@ func TestUsers(t *testing.T) {
 	}
 	updatedTime := time.Now().UTC()
 
-	if err := user.Update(ctx, db, u0.ID, update, updatedTime); err != nil {
+	if err := user.Update(ctx, db, claims, u0.ID, update, updatedTime); err != nil {
 		t.Fatalf("updating user u0: %s", err)
 	}
 

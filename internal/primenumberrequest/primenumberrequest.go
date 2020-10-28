@@ -10,6 +10,7 @@ import (
 	"github.com/imperiustx/prime_number/internal/platform/auth"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"go.opencensus.io/trace"
 )
 
 // Predefined errors identify expected failure conditions.
@@ -23,6 +24,9 @@ var (
 
 // List gets all Requests from the database.
 func List(ctx context.Context, db *sqlx.DB) ([]PrimeNumberRequest, error) {
+	ctx, span := trace.StartSpan(ctx, "primenumberrequest.List")
+	defer span.End()
+
 	requests := []PrimeNumberRequest{}
 
 	const q = `SELECT * FROM prime_number_requests`
@@ -36,6 +40,9 @@ func List(ctx context.Context, db *sqlx.DB) ([]PrimeNumberRequest, error) {
 
 // Retrieve finds the request identified by a given ID.
 func Retrieve(ctx context.Context, db *sqlx.DB, id string) (*PrimeNumberRequest, error) {
+	ctx, span := trace.StartSpan(ctx, "primenumberrequest.Retrieve")
+	defer span.End()
+
 	if _, err := uuid.Parse(id); err != nil {
 		return nil, ErrInvalidID
 	}
@@ -57,6 +64,8 @@ func Retrieve(ctx context.Context, db *sqlx.DB, id string) (*PrimeNumberRequest,
 // Create adds a Request to the database. It returns the created Request with
 // fields like ID and DateCreated populated..
 func Create(ctx context.Context, db *sqlx.DB, user auth.Claims, nr NewRequest, now time.Time) (*PrimeNumberRequest, error) {
+	ctx, span := trace.StartSpan(ctx, "primenumberrequest.Create")
+	defer span.End()
 
 	p := PrimeNumberRequest{
 		ID:            uuid.New().String(),
@@ -96,6 +105,8 @@ Prime:
 
 // ListRequests gives all Requests of an User.
 func ListRequests(ctx context.Context, db *sqlx.DB, userID string) ([]PrimeNumberRequest, error) {
+	ctx, span := trace.StartSpan(ctx, "primenumberrequest.ListRequests")
+	defer span.End()
 	requests := []PrimeNumberRequest{}
 
 	const q = `SELECT * FROM prime_number_requests WHERE user_id = $1`

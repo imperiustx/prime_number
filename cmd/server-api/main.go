@@ -140,6 +140,7 @@ func run() error {
 	// Start Debug Service
 	//
 	// /debug/pprof - Added to the default mux by importing the net/http/pprof package.
+	// /debug/vars - Added to the default mux by importing the expvar package.
 	//
 	// Not concerned with shutting this down when the application is shutdown.
 	go func() {
@@ -151,9 +152,14 @@ func run() error {
 	// =========================================================================
 	// Start API Service
 
+	// Make a channel to listen for an interrupt or terminate signal from the OS.
+	// Use a buffered channel because the signal package requires it.
+	shutdown := make(chan os.Signal, 1)
+	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
+
 	api := http.Server{
 		Addr:         cfg.Web.Address,
-		Handler:      handlers.API(db, log, authenticator),
+		Handler:      handlers.API(shutdown, db, log, authenticator),
 		ReadTimeout:  cfg.Web.ReadTimeout,
 		WriteTimeout: cfg.Web.WriteTimeout,
 	}
@@ -168,11 +174,6 @@ func run() error {
 		serverErrors <- api.ListenAndServe()
 	}()
 
-	// Make a channel to listen for an interrupt or terminate signal from the OS.
-	// Use a buffered channel because the signal package requires it.
-	shutdown := make(chan os.Signal, 1)
-	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
-
 	// =========================================================================
 	// Shutdown
 
@@ -181,8 +182,8 @@ func run() error {
 	case err := <-serverErrors:
 		return errors.Wrap(err, "starting server")
 
-	case <-shutdown:
-		log.Println("main : Start shutdown")
+	case sig := <-shutdown:
+		log.Printf("main : %v : Start shutdown", sig)
 
 		// Give outstanding requests a deadline for completion.
 		ctx, cancel := context.WithTimeout(context.Background(), cfg.Web.ShutdownTimeout)
@@ -195,7 +196,11 @@ func run() error {
 			err = api.Close()
 		}
 
-		if err != nil {
+		// Log the status of this shutdown.
+		switch {
+		case sig == syscall.SIGSTOP:
+			return errors.New("integrity issue caused shutdown")
+		case err != nil:
 			return errors.Wrap(err, "could not stop server gracefully")
 		}
 	}
