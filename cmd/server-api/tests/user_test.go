@@ -1,6 +1,9 @@
 package tests
 
 import (
+	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -9,11 +12,14 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/imperiustx/prime_number/cmd/server-api/internal/handlers"
+	"github.com/imperiustx/prime_number/internal/platform/auth"
 	"github.com/imperiustx/prime_number/internal/platform/database"
 	"github.com/imperiustx/prime_number/internal/schema"
+	"github.com/imperiustx/prime_number/internal/user"
 )
 
 // TestUsers runs a series of tests to exercise Product behavior from the
@@ -23,6 +29,23 @@ import (
 // subtest needs a fresh instance of the application it can make it or it
 // should be its own Test* function.
 func TestUsers(t *testing.T) {
+	// Create the logger to use.
+	logger := log.New(os.Stdout, "TEST : ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
+
+	// Create RSA keys to enable authentication in our service.
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Build an authenticator using this static key.
+	kid := "4754d86b-7a6d-4df5-9c65-224741361492"
+	kf := auth.NewSimpleKeyLookupFunc(kid, key.Public().(*rsa.PublicKey))
+	authenticator, err := auth.NewAuthenticator(key, kid, "RS256", kf)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	db, err := database.Open(database.Config{
 		User:       "root",
 		Password:   "secret",
@@ -39,9 +62,25 @@ func TestUsers(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	log := log.New(os.Stderr, "TEST : ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
+	shutdown := make(chan os.Signal, 1)
 
-	tests := UserTests{app: handlers.API(db, log)}
+	claims, err := user.Authenticate(
+		context.Background(), db, time.Now(),
+		"admin@example.com", "gophers",
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tkn, err := authenticator.GenerateToken(claims)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tests := UserTests{
+		app:        handlers.API(shutdown, db, logger, authenticator),
+		adminToken: tkn,
+	}
 
 	t.Run("List", tests.List)
 	t.Run("CreateRequiresFields", tests.CreateRequiresFields)
@@ -52,11 +91,13 @@ func TestUsers(t *testing.T) {
 // passing dependencies for tests while still providing a convenient syntax
 // when subtests are registered.
 type UserTests struct {
-	app http.Handler
+	app        http.Handler
+	adminToken string
 }
 
 func (u *UserTests) List(t *testing.T) {
 	req := httptest.NewRequest("GET", "/v1/users", nil)
+	req.Header.Set("Authorization", "Bearer "+u.adminToken)
 	resp := httptest.NewRecorder()
 
 	u.app.ServeHTTP(resp, req)
@@ -98,6 +139,7 @@ func (u *UserTests) CreateRequiresFields(t *testing.T) {
 	body := strings.NewReader(`{}`)
 	req := httptest.NewRequest("POST", "/v1/users", body)
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+u.adminToken)
 
 	resp := httptest.NewRecorder()
 
@@ -116,6 +158,7 @@ func (u *UserTests) UserCRUD(t *testing.T) {
 
 		req := httptest.NewRequest("POST", "/v1/users", body)
 		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+u.adminToken)
 		resp := httptest.NewRecorder()
 
 		u.app.ServeHTTP(resp, req)
@@ -156,6 +199,7 @@ func (u *UserTests) UserCRUD(t *testing.T) {
 		url := fmt.Sprintf("/v1/users/%s", created["id"])
 		req := httptest.NewRequest("GET", url, nil)
 		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+u.adminToken)
 		resp := httptest.NewRecorder()
 
 		u.app.ServeHTTP(resp, req)
@@ -179,6 +223,7 @@ func (u *UserTests) UserCRUD(t *testing.T) {
 		body := strings.NewReader(`{"name":"new name"}`)
 		url := fmt.Sprintf("/v1/users/%s", created["id"])
 		req := httptest.NewRequest("PUT", url, body)
+		req.Header.Set("Authorization", "Bearer "+u.adminToken)
 		req.Header.Set("Content-Type", "application/json")
 		resp := httptest.NewRecorder()
 
@@ -191,6 +236,7 @@ func (u *UserTests) UserCRUD(t *testing.T) {
 		// Retrieve updated record to be sure it worked.
 		req = httptest.NewRequest("GET", url, nil)
 		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+u.adminToken)
 		resp = httptest.NewRecorder()
 
 		u.app.ServeHTTP(resp, req)
@@ -222,6 +268,7 @@ func (u *UserTests) UserCRUD(t *testing.T) {
 	{ // DELETE
 		url := fmt.Sprintf("/v1/users/%s", created["id"])
 		req := httptest.NewRequest("DELETE", url, nil)
+		req.Header.Set("Authorization", "Bearer "+u.adminToken)
 		resp := httptest.NewRecorder()
 
 		u.app.ServeHTTP(resp, req)
@@ -233,6 +280,7 @@ func (u *UserTests) UserCRUD(t *testing.T) {
 		// Retrieve updated record to be sure it worked.
 		req = httptest.NewRequest("GET", url, nil)
 		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+u.adminToken)
 		resp = httptest.NewRecorder()
 
 		u.app.ServeHTTP(resp, req)

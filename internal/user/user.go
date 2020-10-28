@@ -9,6 +9,7 @@ import (
 	"github.com/imperiustx/prime_number/internal/platform/auth"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"go.opencensus.io/trace"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -31,6 +32,9 @@ var (
 
 // List gets all Users from the database.
 func List(ctx context.Context, db *sqlx.DB) ([]User, error) {
+	ctx, span := trace.StartSpan(ctx, "user.List")
+	defer span.End()
+
 	users := []User{}
 
 	const q = `SELECT * FROM users`
@@ -44,6 +48,9 @@ func List(ctx context.Context, db *sqlx.DB) ([]User, error) {
 
 // Retrieve finds the user identified by a given ID.
 func Retrieve(ctx context.Context, db *sqlx.DB, id string) (*User, error) {
+	ctx, span := trace.StartSpan(ctx, "user.Retrieve")
+	defer span.End()
+
 	if _, err := uuid.Parse(id); err != nil {
 		return nil, ErrInvalidID
 	}
@@ -65,6 +72,9 @@ func Retrieve(ctx context.Context, db *sqlx.DB, id string) (*User, error) {
 // Create adds a User to the database. It returns the created User with
 // fields like ID and DateCreated populated..
 func Create(ctx context.Context, db *sqlx.DB, nu NewUser, now time.Time) (*User, error) {
+	ctx, span := trace.StartSpan(ctx, "user.Create")
+	defer span.End()
+
 	hash, err := bcrypt.GenerateFromPassword([]byte(nu.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, errors.Wrap(err, "generating password hash")
@@ -98,6 +108,9 @@ func Create(ctx context.Context, db *sqlx.DB, nu NewUser, now time.Time) (*User,
 // Update modifies data about an User. It will error if the specified ID is
 // invalid or does not reference an existing User.
 func Update(ctx context.Context, db *sqlx.DB, user auth.Claims, id string, update UpdateUser, now time.Time) error {
+	ctx, span := trace.StartSpan(ctx, "user.Update")
+	defer span.End()
+
 	u, err := Retrieve(ctx, db, id)
 	if err != nil {
 		return err
@@ -132,6 +145,9 @@ func Update(ctx context.Context, db *sqlx.DB, user auth.Claims, id string, updat
 
 // Delete removes the user identified by a given ID.
 func Delete(ctx context.Context, db *sqlx.DB, id string) error {
+	ctx, span := trace.StartSpan(ctx, "user.Delete")
+	defer span.End()
+
 	if _, err := uuid.Parse(id); err != nil {
 		return ErrInvalidID
 	}
@@ -149,6 +165,8 @@ func Delete(ctx context.Context, db *sqlx.DB, id string) error {
 // success it returns a Claims value representing this user. The claims can be
 // used to generate a token for future authentication.
 func Authenticate(ctx context.Context, db *sqlx.DB, now time.Time, email, password string) (auth.Claims, error) {
+	ctx, span := trace.StartSpan(ctx, "user.Authenticate")
+	defer span.End()
 
 	const q = `SELECT * FROM users WHERE email = $1`
 
