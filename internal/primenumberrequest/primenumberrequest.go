@@ -71,7 +71,7 @@ func Create(ctx context.Context, db *sqlx.DB, user auth.Claims, nr NewRequest, n
 		ID:            uuid.New().String(),
 		UserID:        user.Subject,
 		SendNumber:    nr.SendNumber,
-		ReceiveNumber: highestPrimeNumber(nr.SendNumber),
+		ReceiveNumber: HighestPrimeNumber(nr.SendNumber),
 		DateCreated:   now.UTC(),
 	}
 
@@ -90,14 +90,19 @@ func Create(ctx context.Context, db *sqlx.DB, user auth.Claims, nr NewRequest, n
 	return &p, nil
 }
 
-func highestPrimeNumber(num int64) int64 {
+// HighestPrimeNumber is use for finding out the result
+func HighestPrimeNumber(num int64) int64 {
+	if num%2 == 0 {
+		num--
+	}
+
 Prime:
 	for {
 		switch {
 		case big.NewInt(num).ProbablyPrime(0):
 			break Prime
 		default:
-			num--
+			num -= 2
 		}
 	}
 	return num
