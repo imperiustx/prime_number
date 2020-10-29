@@ -1,17 +1,14 @@
-FROM --platform=${BUILDPLATFORM} golang:1.15.3-alpine AS build
-WORKDIR /src
-ENV CGO_ENABLED=0
-COPY . .
-ARG TARGETOS
-ARG TARGETARCH
-RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /out/server ./cmd/server-api
+FROM golang:1.15-alpine AS build
 
-FROM scratch AS bin-unix
-FROM bin-unix AS bin-darwin
+WORKDIR /src/
+COPY . /src/
+RUN CGO_ENABLED=0 go build -o /bin/server ./cmd/server-api
+RUN CGO_ENABLED=0 go build -o /bin/admin ./cmd/server-admin
 
-COPY --from=build /out/server /
+FROM scratch
+COPY --from=build /bin/server /bin/server
+COPY --from=build /bin/admin /bin/admin
 
-FROM bin-unix AS bin-linux
+EXPOSE 8000
 
-FROM bin-${TARGETOS} AS bin
-
+ENTRYPOINT ["/bin/server"]

@@ -9,6 +9,16 @@ networks:
     driver: bridge
 
 services:
+  db:
+    image: postgres:12-alpine
+    container_name: 'ds_db'
+    restart: always
+    ports: 
+        - 5432:5432
+    env_file: 
+        - .env
+    volumes:
+        - data:/var/lib/postgresql/data
 
   # This sidecar allows for the viewing of traces.
   zipkin:
@@ -18,3 +28,6 @@ services:
     image: openzipkin/zipkin:latest
     ports:
       - 9411:9411
+
+volumes: 
+  data:
