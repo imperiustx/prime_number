@@ -22,7 +22,6 @@
 - [x] implement health check, profilling, add middleware, metrics, request logging
 - [x] Implement Authentication and Authorization
 - [x] Add tracing
-- [ ] Create a Dockerfile, and docker-compose 
-- [ ] Create frontend by using TypeScript 
-- [ ] Deploy project on an AWS EC2 manually
+- [x] Create a Dockerfile, and docker-compose 
+- [x] Deploy project on an AWS EC2 manually
 - [ ] Set up Github Actions
