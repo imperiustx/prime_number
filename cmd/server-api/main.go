@@ -46,8 +46,8 @@ func run() error {
 
 	var cfg struct {
 		Web struct {
-			Address         string        `conf:"default:localhost:8000"`
-			Debug           string        `conf:"default:localhost:6060"`
+			Address         string        `conf:"default:0.0.0.0:8000"`
+			Debug           string        `conf:"default:0.0.0.0:6060"`
 			ReadTimeout     time.Duration `conf:"default:5s"`
 			WriteTimeout    time.Duration `conf:"default:5s"`
 			ShutdownTimeout time.Duration `conf:"default:5s"`
