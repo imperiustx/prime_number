@@ -33,6 +33,6 @@ private:
 	# go run ./cmd/server-admin keygen private.pem
 
 build:
-	docker image build -t server .
+	docker build --target bin --output bin/ --platform local .
 
 .PHONY: db psql createdb dropdb run lint migrate seed expvarmon private build
