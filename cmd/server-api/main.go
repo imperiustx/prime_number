@@ -4,7 +4,7 @@ package main
 import (
 	"context"
 	"crypto/rsa"
-	_ "expvar" // Register deebug/vars handlers
+	_ "expvar" // Register debug/vars handlers
 	"fmt"
 	"io/ioutil"
 	"log"

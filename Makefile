@@ -11,26 +11,26 @@ dropdb:
 	docker exec -it postgres12 dropdb prime_number
 
 run:
-	./bin/server
-	# go run ./cmd/server-api
+	# ./bin/server
+	go run ./cmd/server-api
 
 lint:
 	golangci-lint run
 
 migrate:
-	./bin/admin migrate
-	# go run ./cmd/server-admin/ migrate
+	# ./bin/admin migrate
+	go run ./cmd/server-admin/ migrate
 
 seed:
-	./bin/admin seed
-	# go run ./cmd/server-admin/ seed
+	# ./bin/admin seed
+	go run ./cmd/server-admin/ seed
 
 expvarmon:
 	expvarmon -ports="6060" -endpoint="/debug/vars" -vars="requests,goroutines,errors,mem:memstats.Alloc"
 
 private:
-	./bin/admin keygen private.pem
-	# go run ./cmd/server-admin keygen private.pem
+	# ./bin/admin keygen private.pem
+	go run ./cmd/server-admin keygen private.pem
 
 build:
 	docker build --target bin --output bin/ --platform local .
