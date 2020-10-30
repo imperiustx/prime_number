@@ -55,7 +55,7 @@ func run() error {
 		DB struct {
 			User       string `conf:"default:root"`
 			Password   string `conf:"default:secret,noprint"`
-			Host       string `conf:"default:localhost"`
+			Host       string `conf:"default:0.0.0.0"`
 			Name       string `conf:"default:prime_number"`
 			DisableTLS bool   `conf:"default:true"`
 		}
