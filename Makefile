@@ -11,8 +11,9 @@ dropdb:
 	docker exec -it postgres12 dropdb prime_number
 
 run:
+	docker container run -p 8000:8000 server
 	# ./bin/server
-	go run ./cmd/server-api
+	# go run ./cmd/server-api
 
 lint:
 	golangci-lint run
@@ -33,6 +34,9 @@ private:
 	go run ./cmd/server-admin keygen private.pem
 
 build:
-	docker build --target bin --output bin/ --platform local .
+	docker image build -t server .
+
+port:
+	sudo lsof -i -P -n | grep LISTEN
 
 .PHONY: db psql createdb dropdb run lint migrate seed expvarmon private build
