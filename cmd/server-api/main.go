@@ -55,7 +55,7 @@ func run() error {
 		DB struct {
 			User       string `conf:"default:root"`
 			Password   string `conf:"default:secret,noprint"`
-			Host       string `conf:"default:0.0.0.0"`
+			Host       string `conf:"default:localhost"`
 			Name       string `conf:"default:prime_number"`
 			DisableTLS bool   `conf:"default:true"`
 		}
@@ -65,7 +65,7 @@ func run() error {
 			Algorithm      string `conf:"default:RS256"`
 		}
 		Trace struct {
-			URL         string  `conf:"default:http://0.0.0.0:9411/api/v2/spans"`
+			URL         string  `conf:"default:http://localhost:9411/api/v2/spans"`
 			Service     string  `conf:"default:server-api"`
 			Probability float64 `conf:"default:1"`
 		}

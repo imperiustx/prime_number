@@ -1,7 +1,3 @@
-# https://docs.docker.com/compose/compose-file
-# docker-compose up
-# docker-compose stop
-# docker-compose down
 version: '3'
 
 networks:
@@ -11,7 +7,9 @@ networks:
 services:
   db:
     image: postgres:12-alpine
-    container_name: 'ds_db'
+    container_name: 'prime_db'
+    networks:
+      - shared-network
     restart: always
     ports: 
         - 5432:5432
@@ -28,6 +26,6 @@ services:
     image: openzipkin/zipkin:latest
     ports:
       - 9411:9411
-
+    
 volumes: 
   data:

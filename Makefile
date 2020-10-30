@@ -12,25 +12,20 @@ dropdb:
 
 run:
 	docker container run -p 8000:8000 server
-	# ./bin/server
-	# go run ./cmd/server-api
 
 lint:
 	golangci-lint run
 
 migrate:
-	# ./bin/admin migrate
 	go run ./cmd/server-admin/ migrate
 
 seed:
-	# ./bin/admin seed
 	go run ./cmd/server-admin/ seed
 
 expvarmon:
 	expvarmon -ports="6060" -endpoint="/debug/vars" -vars="requests,goroutines,errors,mem:memstats.Alloc"
 
 private:
-	# ./bin/admin keygen private.pem
 	go run ./cmd/server-admin keygen private.pem
 
 build:
@@ -39,4 +34,16 @@ build:
 port:
 	sudo lsof -i -P -n | grep LISTEN
 
-.PHONY: db psql createdb dropdb run lint migrate seed expvarmon private build
+docbuild:
+	docker-compose up --build
+
+docup:
+	docker-compose up
+
+docdown:
+	docker-compose down
+
+docclean:
+	docker system prune -f 
+
+.PHONY: db psql createdb dropdb run lint migrate seed expvarmon private build docbuild docup docdown docclean
